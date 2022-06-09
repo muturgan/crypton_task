@@ -95,4 +95,8 @@ contract Voting {
 	function closed() public view returns(bool) {
 		return block.timestamp >= votingClosingDate;
 	}
+
+	function getCandidates() external view returns(address[] memory) {
+		return candidates;
+	}
 }
