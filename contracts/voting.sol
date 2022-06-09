@@ -21,7 +21,7 @@ contract Voting {
 
 		for (uint i = 0; i < _candidates.length; i++) {
 			address candidate = _candidates[i];
-			require(candidate != address0, "zero address candidate");
+			require(candidate != address0, 'zero address candidate');
 			require(!isCandidate[candidate], "not unique candidate");
 			isCandidate[candidate] = true;
 		}
