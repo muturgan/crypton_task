@@ -15,13 +15,13 @@ contract Voting {
 
 
 	constructor(address[] memory _candidates) {
-		require(_candidates.length >= 1, 'at least 2 candidates');
+		require(_candidates.length >= 1, "at least 2 candidates");
 
 		address address0 = address(0);
 
 		for (uint i = 0; i < _candidates.length; i++) {
 			address candidate = _candidates[i];
-			require(candidate != address0, 'zero address candidate');
+			require(candidate != address0, "zero address candidate");
 			require(!isCandidate[candidate], "not unique candidate");
 			isCandidate[candidate] = true;
 		}
