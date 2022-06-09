@@ -15,7 +15,7 @@ contract Voting {
 
 
 	constructor(address[] memory _candidates) {
-		require(_candidates.length >= 1, "at least 2 candidates");
+		require(_candidates.length >= 1, 'at least 2 candidates');
 
 		address address0 = address(0);
 
