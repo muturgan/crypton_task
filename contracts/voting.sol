@@ -10,8 +10,8 @@ contract Voting {
 	address[] public voters;
 	uint public immutable votingClosingDate;
 	mapping(address => uint) public votes;
-	mapping(address => bool) private isCandidate;
-	mapping(address => bool) private isVoted;
+	mapping(address => bool) public isCandidate;
+	mapping(address => bool) public isVoted;
 
 
 	constructor(address[] memory _candidates) {
