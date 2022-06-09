@@ -65,8 +65,7 @@ contract Voting {
 				maxVotes = candidateVotes;
 				notSingleLeader = false;
 			}
-
-			if (candidateVotes == maxVotes) {
+			else if (candidateVotes > 0 && candidateVotes == maxVotes) {
 				notSingleLeader = true;
 			}
 		}
