@@ -1,3 +1,10 @@
+#Hardhat files
+cache
+artifacts
+deployments
+typechain
+typechain-types
+
 # Logs
 logs
 *.log
@@ -20,6 +27,7 @@ lib-cov
 
 # Coverage directory used by tools like istanbul
 coverage
+coverage.json
 *.lcov
 
 # nyc test coverage
