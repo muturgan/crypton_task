@@ -12,7 +12,8 @@
     "clean": "hardhat clean",
     "compile": "hardhat clean && hardhat compile",
     "deploy": "hardhat deploy",
-    "test": "hardhat coverage",
+    "test": "npm run compile && hardhat test",
+    "coverage": "npm run compile && hardhat coverage",
     "lint_staged": "lint-staged",
     "prepare": "husky install"
   },

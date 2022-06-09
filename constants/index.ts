@@ -1,1 +1,4 @@
+export const HARDHAT_PROVIDER_URL = 'http://127.0.0.1:8545/';
 export const VOTING_PLATFORM_CONTRACT_NAME = 'VotingPlatform';
+export const VOTING_CONTRACT_NAME = 'Voting';
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';

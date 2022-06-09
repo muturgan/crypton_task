@@ -32,7 +32,7 @@
     "curly": true,
     "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
     "array-type": [true, "array-simple"],
-    "no-submodule-imports": [true, "hardhat", "hardhat-deploy"],
+    "no-submodule-imports": [true, "hardhat", "hardhat-deploy", "hardhat-deploy-ethers"],
     "interface-name": [true, "always-prefix"],
     "member-access": [true, "check-accessor", "check-parameter-property"]
   }
