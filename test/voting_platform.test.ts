@@ -4,6 +4,9 @@ import { VOTING_PLATFORM_CONTRACT_NAME, ZERO_ADDRESS, AUTO_VOTER_CONTRACT_NAME }
 import { Voting, VotingPlatform, VotingPlatform__factory, AutoVoter__factory } from '../typechain-types';
 import { abi } from '../artifacts/contracts/voting.sol/Voting.json';
 
+const parseEther = ethers.utils.parseEther;
+const votingCost = parseEther('0.01');
+
 let vp: VotingPlatform;
 let voting: Voting;
 
@@ -74,9 +77,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const user1Signer = ethers.provider.getSigner(user1);
 			const user1Connection = voting.connect(user1Signer);
 
-			await user1Connection.vote(candidate1, {
-				value: ethers.utils.parseEther('0.01'),
-			});
+			await user1Connection.vote(candidate1, {value: votingCost});
 
 			const isVoted = await user1Connection.isVoted(user1);
 			assert.strictEqual(isVoted, true);
@@ -103,10 +104,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const candidate1Connection = voting.connect(candidate1Signer);
 
 			await expect(
-				candidate1Connection.vote(
-					candidate1,
-					{ value: ethers.utils.parseEther('0.01') },
-				),
+				candidate1Connection.vote(candidate1, {value: votingCost}),
 			).to.be.revertedWith(`a candidate can't vote`);
 		});
 
@@ -116,10 +114,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const user1Connection = voting.connect(user1Signer);
 
 			await expect(
-				user1Connection.vote(
-					candidate1,
-					{ value: ethers.utils.parseEther('0.01') },
-				),
+				user1Connection.vote(candidate1, {value: votingCost}),
 			).to.be.revertedWith(`already voted`);
 		});
 
@@ -131,7 +126,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			await expect(
 				user2Connection.vote(
 					candidate1,
-					{ value: ethers.utils.parseEther('0.02') },
+					{ value: parseEther('0.02') },
 				),
 			).to.be.revertedWith(`a voting cost is 0.01 ETH`);
 		});
@@ -144,7 +139,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			await expect(
 				user2Connection.vote(
 					candidate1,
-					{ value: ethers.utils.parseEther('0.001') },
+					{ value: parseEther('0.001') },
 				),
 			).to.be.revertedWith(`a voting cost is 0.01 ETH`);
 		});
@@ -165,10 +160,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const user2Connection = voting.connect(user2Signer);
 
 			await expect(
-				user2Connection.vote(
-					user1,
-					{ value: ethers.utils.parseEther('0.01') },
-				),
+				user2Connection.vote(user1, {value: votingCost}),
 			).to.be.revertedWith(`not a candidate`);
 		});
 	});
@@ -221,10 +213,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const user3Connection = voting.connect(user3Signer);
 
 			await expect(
-				user3Connection.vote(
-					candidate1,
-					{ value: ethers.utils.parseEther('0.01') },
-				),
+				user3Connection.vote(candidate1, {value: votingCost}),
 			).to.be.revertedWith(`already closed`);
 		});
 	});
