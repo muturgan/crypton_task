@@ -4,7 +4,6 @@ import { VOTING_PLATFORM_CONTRACT_NAME, ZERO_ADDRESS } from '../constants';
 import { Voting, VotingPlatform, VotingPlatform__factory } from '../typechain-types';
 import { abi } from '../artifacts/contracts/voting.sol/Voting.json';
 
-let VP: VotingPlatform__factory;
 let vp: VotingPlatform;
 let voting: Voting;
 
@@ -12,7 +11,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 
 	before(async () => {
 		const [deployerSigner] = await ethers.getSigners();
-		VP = await ethers.getContractFactory(VOTING_PLATFORM_CONTRACT_NAME, deployerSigner);
+		const VP = await ethers.getContractFactory(VOTING_PLATFORM_CONTRACT_NAME, deployerSigner) as VotingPlatform__factory;
 		vp = await VP.deploy();
 		await vp.deployed();
 	});
