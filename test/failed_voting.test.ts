@@ -18,15 +18,15 @@ describe('Failed voting', async () => {
 		const votingAddress = await vp.votings(0);
 		const voting = await ethers.getContractAt<Voting>(abi, votingAddress);
 
-		const value = ethers.utils.parseEther('0.01');
+		const votingCost = ethers.utils.parseEther('0.01');
 
 		const user1Signer = ethers.provider.getSigner(user1);
 		const user1Connection = voting.connect(user1Signer);
-		await user1Connection.vote(candidate1, { value });
+		await user1Connection.vote(candidate1, { value: votingCost });
 
 		const user2Signer = ethers.provider.getSigner(user2);
 		const user2Connection = voting.connect(user2Signer);
-		await user2Connection.vote(candidate2, { value });
+		await user2Connection.vote(candidate2, { value: votingCost });
 
 		await network.provider.send(
 			'evm_increaseTime',
@@ -46,8 +46,8 @@ describe('Failed voting', async () => {
 		const balance1After = await provider.getBalance(user1);
 		const balance2After = await provider.getBalance(user2);
 
-		assert.strictEqual(balance1After.toBigInt() > balance1Before.toBigInt(), true);
-		assert.strictEqual(balance2After.toBigInt() > balance2Before.toBigInt(), true);
+		assert.strictEqual(balance1After.toBigInt() - balance1Before.toBigInt(), votingCost.toBigInt());
+		assert.strictEqual(balance2After.toBigInt() - balance2Before.toBigInt(), votingCost.toBigInt());
 
 		await expect(vp.withdraw(voting.address))
 			.to.be.revertedWith('the voting was not successful');
