@@ -250,18 +250,15 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const tx = await vp.withdraw(voting.address);
 			const receipt = await tx.wait();
 			const gasUsed = receipt.gasUsed;
+			const gasPrice = receipt.effectiveGasPrice;
 
 			const balance2 = await provider.getBalance(deployer);
 
-			console.info({
-				actual: balance2.toBigInt() - balance1.toBigInt(),
-				expected: votingCost.mul(10).div(100).sub(gasUsed).toBigInt(),
-			});
-
-			// assert.strictEqual(
-			// 	balance2.toBigInt() - balance1.toBigInt(),
-			// 	votingCost.mul(10).div(100).sub(gasUsed).toBigInt(),
-			// );
+			assert.strictEqual(
+				balance2.toBigInt() - balance1.toBigInt(),
+				votingCost.mul(10).div(100) // only one vote was shiped
+					.sub(gasUsed.mul(gasPrice)).toBigInt(),
+			);
 
 			assert.strictEqual(balance2.toBigInt() > balance1.toBigInt(), true);
 		});
