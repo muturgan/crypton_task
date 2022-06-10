@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
+import "@openzeppelin/contracts/utils/Address.sol";
+
 contract Voting {
 
 	bool public finished;
@@ -75,12 +77,12 @@ contract Voting {
 
 		if (notSingleLeader) {
 			for (uint i = 0; i < voters.length; i++) {
-				payable(voters[i]).transfer(0.01 ether);
+				Address.sendValue(payable(voters[i]), 0.01 ether);
 			}
 		}
 		else {
 			uint reward = address(this).balance / 90;
-			payable(leader).transfer(reward);
+			Address.sendValue(payable(leader), reward);
 		}
 	}
 
@@ -88,7 +90,7 @@ contract Voting {
 		require(msg.sender == admin, "not an admin");
 		require(finished, "not finished yet");
 		require(success, "the voting was not successful");
-		payable(_owner).transfer(address(this).balance);
+		Address.sendValue(payable(_owner), address(this).balance);
 	}
 
 	function closed() public view returns(bool) {
