@@ -8,12 +8,16 @@ contract Voting {
 	bool public finished;
 	bool public success;
 	address public immutable admin;
+	address public leader;
 	address[] public candidates;
 	address[] public voters;
 	uint public immutable votingClosingDate;
+	uint public reward;
+	uint public platformFee;
 	mapping(address => uint) public votes;
 	mapping(address => bool) public isCandidate;
 	mapping(address => bool) public isVoted;
+	mapping(address => address) public voterToCandidate;
 
 
 	constructor(address[] memory _candidates) {
@@ -49,13 +53,14 @@ contract Voting {
 		}
 		isVoted[voter] = true;
 		voters.push(voter);
+		voterToCandidate[voter] = _candidate;
 	}
 
 	function finish() external {
 		require(closed(), "not closed yet");
 		require(!finished, "already finished");
 
-		address leader;
+		address nextLeader;
 		uint maxVotes;
 		bool notSingleLeader;
 
@@ -64,7 +69,7 @@ contract Voting {
 			uint candidateVotes = votes[candidate];
 
 			if (candidateVotes > maxVotes) {
-				leader = candidate;
+				nextLeader = candidate;
 				maxVotes = candidateVotes;
 				notSingleLeader = false;
 			}
@@ -82,7 +87,10 @@ contract Voting {
 			}
 		}
 		else {
-			uint reward = address(this).balance * 90 / 100;
+			uint balance = address(this).balance;
+			reward = balance * 90 / 100;
+			platformFee = balance - reward;
+			leader = nextLeader;
 			Address.sendValue(payable(leader), reward);
 		}
 	}
@@ -91,7 +99,7 @@ contract Voting {
 		require(msg.sender == admin, "not an admin");
 		require(finished, "not finished yet");
 		require(success, "the voting was not successful");
-		Address.sendValue(payable(_owner), address(this).balance);
+		Address.sendValue(payable(_owner), platformFee);
 	}
 
 	function closed() public view returns(bool) {

@@ -1,6 +1,6 @@
 import { ethers, getNamedAccounts, network } from 'hardhat';
 import { assert, expect } from './chai';
-import { VOTING_PLATFORM_CONTRACT_NAME } from '../constants';
+import { VOTING_PLATFORM_CONTRACT_NAME, ZERO_ADDRESS } from '../constants';
 import { Voting, VotingPlatform__factory } from '../typechain-types';
 import { abi } from '../artifacts/contracts/voting.sol/Voting.json';
 
@@ -51,5 +51,14 @@ describe('Failed voting', async () => {
 
 		await expect(vp.withdraw(voting.address))
 			.to.be.revertedWith('the voting was not successful');
+
+		const leader = await voting.leader();
+		assert.strictEqual(leader, ZERO_ADDRESS);
+
+		const reward = await voting.reward();
+		assert.strictEqual(Number(reward), 0);
+
+		const platformFee = await voting.platformFee();
+		assert.strictEqual(Number(platformFee), 0);
 	});
 });

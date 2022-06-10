@@ -186,9 +186,9 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 		});
 
 		it('should finish a voting', async () => {
-			const { candidate1: leader } = await getNamedAccounts();
+			const { candidate1 } = await getNamedAccounts();
 			const provider = ethers.provider;
-			const balance1 = await provider.getBalance(leader);
+			const balance1 = await provider.getBalance(candidate1);
 
 			await voting.finish();
 			const finished = await voting.finished();
@@ -198,11 +198,12 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const closed = await voting.closed();
 			assert.strictEqual(closed, true);
 
+			const leader = await voting.leader();
+			assert.strictEqual(leader, candidate1);
+
 			const balance2 = await provider.getBalance(leader);
-			assert.strictEqual(
-				balance2.sub(balance1),
-				votingCost.mul(90).div(100), // only one vote was shiped
-			);
+			const reward = await voting.reward();
+			assert.strictEqual(balance1.add(reward), balance2);
 		});
 
 		it('already finished', async () => {
@@ -218,6 +219,25 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			await expect(
 				user3Connection.vote(candidate1, {value: votingCost}),
 			).to.be.revertedWith(`already closed`);
+		});
+
+		it('Mathematics', async () => {
+			const [candidates, reward, platformFee] = await Promise.all([
+				voting.getCandidates(),
+				voting.reward(),
+				voting.platformFee(),
+			]);
+
+			const votesForCandidates = await Promise.all(
+				candidates.map((c) => voting.votes(c)),
+			);
+
+			const totalVotes = votesForCandidates.reduce((sum, next) => sum + next.toBigInt(), 0n);
+			const totalPayed = votingCost.toBigInt() * totalVotes;
+
+			assert.strictEqual(totalPayed * 90n / 100n, reward.toBigInt());
+			assert.strictEqual(totalPayed * 10n / 100n, platformFee.toBigInt());
+
 		});
 	});
 
@@ -253,11 +273,11 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const gasPrice = receipt.effectiveGasPrice;
 
 			const balance2 = await provider.getBalance(deployer);
+			const platformFee = await voting.platformFee();
 
 			assert.strictEqual(
 				balance2.sub(balance1),
-				votingCost.mul(10).div(100) // only one vote was shiped
-					.sub(gasUsed.mul(gasPrice)),
+				platformFee.sub(gasUsed.mul(gasPrice)),
 			);
 		});
 	});
