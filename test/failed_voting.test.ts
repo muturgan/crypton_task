@@ -46,8 +46,8 @@ describe('Failed voting', async () => {
 		const balance1After = await provider.getBalance(user1);
 		const balance2After = await provider.getBalance(user2);
 
-		assert.strictEqual(balance1After.toBigInt() - balance1Before.toBigInt(), votingCost.toBigInt());
-		assert.strictEqual(balance2After.toBigInt() - balance2Before.toBigInt(), votingCost.toBigInt());
+		assert.strictEqual(balance1After.sub(balance1Before), votingCost);
+		assert.strictEqual(balance2After.sub(balance2Before), votingCost);
 
 		await expect(vp.withdraw(voting.address))
 			.to.be.revertedWith('the voting was not successful');
