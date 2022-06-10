@@ -7,7 +7,7 @@ import { abi } from '../artifacts/contracts/voting.sol/Voting.json';
 const parseEther = ethers.utils.parseEther;
 const votingCost = parseEther('0.01');
 
-let vp: VotingPlatform;
+let platform: VotingPlatform;
 let voting: Voting;
 
 describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
@@ -15,62 +15,62 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 	before(async () => {
 		const [deployerSigner] = await ethers.getSigners();
 		const VP = await ethers.getContractFactory(VOTING_PLATFORM_CONTRACT_NAME, deployerSigner) as VotingPlatform__factory;
-		vp = await VP.deploy();
-		await vp.deployed();
+		platform = await VP.deploy();
+		await platform.deployed();
 	});
 
 	describe('Should prevent a voting creation', async () => {
 		it('not an owner', async () => {
 			const [, anotherUserSigner] = await ethers.getSigners();
-			const anotherConnection = vp.connect(anotherUserSigner);
+			const anotherConnection = platform.connect(anotherUserSigner);
 			await expect(anotherConnection.createVoting([]))
 				.to.be.revertedWith('Ownable: caller is not the owner');
 		});
 
 		it('empty candidates list', async () => {
-			await expect(vp.createVoting([]))
+			await expect(platform.createVoting([]))
 				.to.be.revertedWith('at least 2 candidates');
 		});
 
 		it('short candidates list', async () => {
 			const { candidate1 } = await getNamedAccounts();
-			await expect(vp.createVoting([candidate1]))
+			await expect(platform.createVoting([candidate1]))
 				.to.be.revertedWith('at least 2 candidates');
 		});
 
 		it('zero address candidate', async () => {
 			const { candidate1 } = await getNamedAccounts();
-			await expect(vp.createVoting([candidate1, ZERO_ADDRESS]))
+			await expect(platform.createVoting([candidate1, ZERO_ADDRESS]))
 				.to.be.revertedWith('zero address candidate');
 		});
 
 		it(`a contract can't be a candidate`, async () => {
 			const { candidate1 } = await getNamedAccounts();
-			await expect(vp.createVoting([candidate1, vp.address]))
+			await expect(platform.createVoting([candidate1, platform.address]))
 				.to.be.revertedWith(`a contract can't be a candidate`);
 		});
 
 		it('not unique candidate', async () => {
 			const { candidate1, candidate2 } = await getNamedAccounts();
-			await expect(vp.createVoting([candidate1, candidate2, candidate1]))
+			await expect(platform.createVoting([candidate1, candidate2, candidate1]))
 				.to.be.revertedWith('not unique candidate');
 		});
 	});
 
 	it('Should create a voting', async () => {
 		const { candidate1, candidate2 } = await getNamedAccounts();
-		const tx = await vp.createVoting([candidate1, candidate2]);
+		const tx = await platform.createVoting([candidate1, candidate2]);
 		await tx.wait();
 
-		const votingsCount = await vp.votingsCount();
+		const votingsCount = await platform.votingsCount();
 		assert.strictEqual(Number(votingsCount), 1);
 
-		const votingAddress = await vp.votings(0);
+		const votingAddress = await platform.votings(0);
 		expect(votingAddress).to.be.properAddress; // tslint:disable-line:no-unused-expression
 
 		voting = await ethers.getContractAt(abi, votingAddress);
 		const admin = await voting.admin();
-		assert.strictEqual(admin, vp.address);
+		assert.strictEqual(admin, platform.address);
 
 		const [c1, c2] = await voting.getCandidates();
 		assert.strictEqual(c1, candidate1);
@@ -88,7 +88,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const isVoted = await user1Connection.isVoted(user1);
 			assert.strictEqual(isVoted, true);
 
-			const votes = await user1Connection.votes(candidate1);
+			const votes = await user1Connection.votesForCandidates(candidate1);
 			assert.strictEqual(Number(votes), 1);
 		});
 
@@ -178,7 +178,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 		});
 
 		it('not finished yet', async () => {
-			await expect(vp.withdraw(voting.address))
+			await expect(platform.withdraw(voting.address))
 				.to.be.revertedWith('not finished yet');
 		});
 	});
@@ -235,7 +235,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			]);
 
 			const votesForCandidates = await Promise.all(
-				candidates.map((c) => voting.votes(c)),
+				candidates.map((c) => voting.votesForCandidates(c)),
 			);
 
 			const totalVotes = votesForCandidates.reduce((sum, next) => sum + next.toBigInt(), 0n);
@@ -250,14 +250,14 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 	describe('Withdraw', async () => {
 		it('not an owner', async () => {
 			const [, anotherUserSigner] = await ethers.getSigners();
-			const anotherConnection = vp.connect(anotherUserSigner);
+			const anotherConnection = platform.connect(anotherUserSigner);
 			await expect(anotherConnection.withdraw(voting.address))
 				.to.be.revertedWith('Ownable: caller is not the owner');
 		});
 
 		it('not a voting', async () => {
 			const { user3 } = await getNamedAccounts();
-			await expect(vp.withdraw(user3))
+			await expect(platform.withdraw(user3))
 				.to.be.revertedWith('not a voting');
 		});
 
@@ -273,7 +273,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const provider = ethers.provider;
 			const balance1 = await provider.getBalance(deployer);
 
-			const tx = await vp.withdraw(voting.address);
+			const tx = await platform.withdraw(voting.address);
 			const receipt = await tx.wait();
 			const gasUsed = receipt.gasUsed;
 			const gasPrice = receipt.effectiveGasPrice;

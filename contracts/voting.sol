@@ -14,7 +14,7 @@ contract Voting {
 	uint public immutable votingClosingDate;
 	uint public reward;
 	uint public platformFee;
-	mapping(address => uint) public votes;
+	mapping(address => uint) public votesForCandidates;
 	mapping(address => bool) public isCandidate;
 	mapping(address => bool) public isVoted;
 	mapping(address => address) public voterToCandidate;
@@ -50,7 +50,7 @@ contract Voting {
 		require(isCandidate[_candidate], "not a candidate");
 
 		unchecked {
-			votes[_candidate] += 1;
+			votesForCandidates[_candidate] += 1;
 		}
 		isVoted[voter] = true;
 		voters.push(voter);
@@ -67,7 +67,7 @@ contract Voting {
 
 		for (uint i = 0; i < candidates.length; i++) {
 			address candidate = candidates[i];
-			uint candidateVotes = votes[candidate];
+			uint candidateVotes = votesForCandidates[candidate];
 
 			if (candidateVotes > maxVotes) {
 				nextLeader = candidate;
