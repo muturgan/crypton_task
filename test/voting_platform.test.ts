@@ -247,8 +247,21 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const provider = ethers.provider;
 			const balance1 = await provider.getBalance(deployer);
 
-			await vp.withdraw(voting.address);
+			const tx = await vp.withdraw(voting.address);
+			const receipt = await tx.wait();
+			const gasUsed = receipt.gasUsed;
+
 			const balance2 = await provider.getBalance(deployer);
+
+			console.info({
+				actual: balance2.toBigInt() - balance1.toBigInt(),
+				expected: votingCost.mul(10).div(100).sub(gasUsed).toBigInt(),
+			});
+
+			// assert.strictEqual(
+			// 	balance2.toBigInt() - balance1.toBigInt(),
+			// 	votingCost.mul(10).div(100).sub(gasUsed).toBigInt(),
+			// );
 
 			assert.strictEqual(balance2.toBigInt() > balance1.toBigInt(), true);
 		});
