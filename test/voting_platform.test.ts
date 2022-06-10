@@ -199,7 +199,10 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			assert.strictEqual(closed, true);
 
 			const balance2 = await provider.getBalance(leader);
-			assert.strictEqual(balance2.toBigInt() > balance1.toBigInt(), true);
+			assert.strictEqual(
+				balance2.toBigInt() - balance1.toBigInt(),
+				votingCost.mul(90).div(100).toBigInt(), // only one vote was shiped
+			);
 		});
 
 		it('already finished', async () => {
