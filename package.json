@@ -10,7 +10,7 @@
   "scripts": {
     "hh": "hardhat node",
     "clean": "hardhat clean",
-    "compile": "hardhat clean && hardhat compile",
+    "compile": "hardhat compile",
     "deploy": "hardhat deploy",
     "deploy-to-rinkepy": "hardhat deploy --network rinkeby",
     "verify": "hardhat verify",
