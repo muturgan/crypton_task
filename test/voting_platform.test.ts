@@ -200,8 +200,8 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 
 			const balance2 = await provider.getBalance(leader);
 			assert.strictEqual(
-				balance2.toBigInt() - balance1.toBigInt(),
-				votingCost.mul(90).div(100).toBigInt(), // only one vote was shiped
+				balance2.sub(balance1),
+				votingCost.mul(90).div(100), // only one vote was shiped
 			);
 		});
 
@@ -255,12 +255,10 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 			const balance2 = await provider.getBalance(deployer);
 
 			assert.strictEqual(
-				balance2.toBigInt() - balance1.toBigInt(),
+				balance2.sub(balance1),
 				votingCost.mul(10).div(100) // only one vote was shiped
-					.sub(gasUsed.mul(gasPrice)).toBigInt(),
+					.sub(gasUsed.mul(gasPrice)),
 			);
-
-			assert.strictEqual(balance2.toBigInt() > balance1.toBigInt(), true);
 		});
 	});
 });
