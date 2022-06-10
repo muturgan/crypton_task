@@ -38,6 +38,7 @@ contract Voting {
 		require(!closed(), "already closed");
 
 		address voter = msg.sender;
+		require(Address.isContract(voter) == false, "a contract can't vote");
 		require(isCandidate[voter] == false, "a candidate can't vote");
 		require(isVoted[voter] == false, "already voted");
 		require(msg.value == 0.01 ether, "a voting cost is 0.01 ETH");

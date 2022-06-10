@@ -1,7 +1,7 @@
 import { ethers, getNamedAccounts, network } from 'hardhat';
 import { assert, expect } from './chai';
-import { VOTING_PLATFORM_CONTRACT_NAME, ZERO_ADDRESS } from '../constants';
-import { Voting, VotingPlatform, VotingPlatform__factory } from '../typechain-types';
+import { VOTING_PLATFORM_CONTRACT_NAME, ZERO_ADDRESS, AUTO_VOTER_CONTRACT_NAME } from '../constants';
+import { Voting, VotingPlatform, VotingPlatform__factory, AutoVoter__factory } from '../typechain-types';
 import { abi } from '../artifacts/contracts/voting.sol/Voting.json';
 
 let vp: VotingPlatform;
@@ -83,6 +83,18 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 
 			const votes = await user1Connection.votes(candidate1);
 			assert.strictEqual(Number(votes), 1);
+		});
+
+		it(`a contract can't vote`, async () => {
+			const [deployerSigner] = await ethers.getSigners();
+			const AV = await ethers.getContractFactory(AUTO_VOTER_CONTRACT_NAME, deployerSigner) as AutoVoter__factory;
+			const av = await AV.deploy();
+			await av.deployed();
+
+			const { candidate1 } = await getNamedAccounts();
+
+			await expect(av.vote(voting.address, candidate1))
+				.to.be.revertedWith(`a contract can't vote`);
 		});
 
 		it(`a candidate can't vote`, async () => {
