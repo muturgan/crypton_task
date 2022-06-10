@@ -44,6 +44,12 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 				.to.be.revertedWith('zero address candidate');
 		});
 
+		it(`a contract can't be a candidate`, async () => {
+			const { candidate1 } = await getNamedAccounts();
+			await expect(vp.createVoting([candidate1, vp.address]))
+				.to.be.revertedWith(`a contract can't be a candidate`);
+		});
+
 		it('not unique candidate', async () => {
 			const { candidate1, candidate2 } = await getNamedAccounts();
 			await expect(vp.createVoting([candidate1, candidate2, candidate1]))
