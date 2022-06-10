@@ -5,6 +5,7 @@ import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
 import '@typechain/hardhat';
 import 'solidity-coverage';
+import '@nomiclabs/hardhat-etherscan';
 
 dotenv.config();
 
@@ -23,6 +24,9 @@ const config: HardhatUserConfig = {
 			url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
 			accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
 		},
+	},
+	etherscan: {
+		apiKey: process.env.ETHERSCAN_API_KEY,
 	},
 	namedAccounts: {
 		deployer: 0,
