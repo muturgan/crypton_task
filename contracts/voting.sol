@@ -82,7 +82,7 @@ contract Voting {
 			}
 		}
 		else {
-			uint reward = address(this).balance / 90;
+			uint reward = address(this).balance * 90 / 100;
 			Address.sendValue(payable(leader), reward);
 		}
 	}
