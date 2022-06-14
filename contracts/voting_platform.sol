@@ -22,6 +22,6 @@ contract VotingPlatform is Ownable {
 
 	function withdraw(Voting _voting) external onlyOwner {
 		require(isVoting[_voting], "not a voting");
-		_voting.withdraw(msg.sender);
+		_voting.withdrawPlatformFee(msg.sender);
 	}
 }

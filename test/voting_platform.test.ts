@@ -85,8 +85,8 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 
 			await user1Connection.vote(candidate1, {value: votingCost});
 
-			const isVoted = await user1Connection.isVoted(user1);
-			assert.strictEqual(isVoted, true);
+			const user1Choice = await user1Connection.voterToCandidate(user1);
+			assert.strictEqual(user1Choice, candidate1);
 
 			const votes = await user1Connection.votesForCandidates(candidate1);
 			assert.strictEqual(Number(votes), 1);
@@ -177,8 +177,17 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 				.to.be.revertedWith('not closed yet');
 		});
 
-		it('not finished yet', async () => {
+		it('not finished yet (withdraw by a platform)', async () => {
 			await expect(platform.withdraw(voting.address))
+				.to.be.revertedWith('not finished yet');
+		});
+
+		it('not finished yet (refundOnVotingFail)', async () => {
+			const { user2 } = await getNamedAccounts();
+			const user2Signer = ethers.provider.getSigner(user2);
+			const user2Connection = voting.connect(user2Signer);
+
+			await expect(user2Connection.refundOnVotingFail())
 				.to.be.revertedWith('not finished yet');
 		});
 	});
@@ -193,8 +202,6 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 
 		it('should finish a voting', async () => {
 			const { candidate1 } = await getNamedAccounts();
-			const provider = ethers.provider;
-			const balance1 = await provider.getBalance(candidate1);
 
 			await voting.finish();
 			const finished = await voting.finished();
@@ -206,10 +213,15 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 
 			const leader = await voting.leader();
 			assert.strictEqual(leader, candidate1);
+		});
 
-			const balance2 = await provider.getBalance(leader);
-			const reward = await voting.reward();
-			assert.strictEqual(balance1.add(reward), balance2);
+		it('the voting was successful', async () => {
+			const { user2 } = await getNamedAccounts();
+			const user2Signer = ethers.provider.getSigner(user2);
+			const user2Connection = voting.connect(user2Signer);
+
+			await expect(user2Connection.refundOnVotingFail())
+				.to.be.revertedWith('the voting was successful');
 		});
 
 		it('already finished', async () => {
@@ -247,7 +259,7 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 		});
 	});
 
-	describe('Withdraw', async () => {
+	describe('Withdraw a platform fee', async () => {
 		it('not an owner', async () => {
 			const [, anotherUserSigner] = await ethers.getSigners();
 			const anotherConnection = platform.connect(anotherUserSigner);
@@ -255,17 +267,17 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 				.to.be.revertedWith('Ownable: caller is not the owner');
 		});
 
+		it('not an admin', async () => {
+			const [, anotherUserSigner] = await ethers.getSigners();
+			const anotherConnection = voting.connect(anotherUserSigner);
+			await expect(anotherConnection.withdrawPlatformFee(anotherUserSigner.address))
+				.to.be.revertedWith('not an admin');
+		});
+
 		it('not a voting', async () => {
 			const { user3 } = await getNamedAccounts();
 			await expect(platform.withdraw(user3))
 				.to.be.revertedWith('not a voting');
-		});
-
-		it('not an admin', async () => {
-			const [, anotherUserSigner] = await ethers.getSigners();
-			const anotherConnection = voting.connect(anotherUserSigner);
-			await expect(anotherConnection.withdraw(anotherUserSigner.address))
-				.to.be.revertedWith('not an admin');
 		});
 
 		it('should be withdrawn', async () => {
@@ -285,6 +297,11 @@ describe(VOTING_PLATFORM_CONTRACT_NAME, async () => {
 				balance2.sub(balance1),
 				platformFee.sub(gasUsed.mul(gasPrice)),
 			);
+		});
+
+		it('already withdrawn', async () => {
+			await expect(platform.withdraw(voting.address))
+				.to.be.revertedWith('already withdrawn');
 		});
 	});
 });

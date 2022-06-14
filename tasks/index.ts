@@ -56,7 +56,7 @@ task<t.IGetVotingArgs>('vp-get-voting', 'Prints a voting address by index')
 		}
 
 		const voting = await vp.votings(index);
-		console.info(`The address ${index} voting is ${voting}`);
+		console.info(`The address of ${index} voting is ${voting}`);
 	});
 
 task<t.IIsVotingArgs>('vp-is-voting', 'Prints is this address a voting contract or not')

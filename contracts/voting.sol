@@ -12,11 +12,12 @@ contract Voting {
 	address[] public candidates;
 	address[] public voters;
 	uint public immutable votingClosingDate;
+	uint public constant VOTING_COST = 0.01 ether;
 	uint public reward;
 	uint public platformFee;
 	mapping(address => uint) public votesForCandidates;
 	mapping(address => bool) public isCandidate;
-	mapping(address => bool) public isVoted;
+	mapping(address => bool) public isWithdrawn;
 	mapping(address => address) public voterToCandidate;
 
 
@@ -32,7 +33,6 @@ contract Voting {
 			require(!isCandidate[candidate], "not unique candidate");
 			isCandidate[candidate] = true;
 		}
-
 		candidates = _candidates;
 		votingClosingDate = block.timestamp + 3 days;
 
@@ -45,14 +45,13 @@ contract Voting {
 		address voter = msg.sender;
 		require(Address.isContract(voter) == false, "a contract can't vote");
 		require(isCandidate[voter] == false, "a candidate can't vote");
-		require(isVoted[voter] == false, "already voted");
-		require(msg.value == 0.01 ether, "a voting cost is 0.01 ETH");
+		require(voterToCandidate[voter] == address(0), "already voted");
+		require(msg.value == VOTING_COST, "a voting cost is 0.01 ETH");
 		require(isCandidate[_candidate], "not a candidate");
 
 		unchecked {
 			votesForCandidates[_candidate] += 1;
 		}
-		isVoted[voter] = true;
 		voters.push(voter);
 		voterToCandidate[voter] = _candidate;
 	}
@@ -79,28 +78,48 @@ contract Voting {
 			}
 		}
 
-		success = !notSingleLeader;
 		finished = true;
 
-		if (notSingleLeader) {
-			for (uint i = 0; i < voters.length; i++) {
-				Address.sendValue(payable(voters[i]), 0.01 ether);
-			}
-		}
-		else {
+		if (!notSingleLeader) {
 			uint balance = address(this).balance;
 			reward = balance * 90 / 100;
 			platformFee = balance - reward;
 			leader = nextLeader;
-			Address.sendValue(payable(leader), reward);
+			success = true;
 		}
 	}
 
-	function withdraw(address _owner) external {
-		require(msg.sender == admin, "not an admin");
+	function withdrawReward() external {
 		require(finished, "not finished yet");
 		require(success, "the voting was not successful");
+
+		address sender = msg.sender;
+		require(sender == leader, "not a leader");
+
+		require(!isWithdrawn[sender], "already withdrawn");
+		isWithdrawn[sender] = true;
+		Address.sendValue(payable(sender), reward);
+	}
+
+	function withdrawPlatformFee(address _owner) external {
+		address sender = msg.sender;
+		require(sender == admin, "not an admin");
+		require(finished, "not finished yet");
+		require(success, "the voting was not successful");
+
+		require(!isWithdrawn[sender], "already withdrawn");
+		isWithdrawn[sender] = true;
 		Address.sendValue(payable(_owner), platformFee);
+	}
+
+	function refundOnVotingFail() external {
+		require(finished, "not finished yet");
+		require(!success, "the voting was successful");
+
+		address sender = msg.sender;
+		require(!isWithdrawn[sender], "already withdrawn");
+		isWithdrawn[sender] = true;
+		Address.sendValue(payable(sender), VOTING_COST);
 	}
 
 	function closed() public view returns(bool) {
